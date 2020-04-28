@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="/bootstrapdist/css/bootstrap.min.css">
+<style type="text/css">
+ul li {
+	list-style-type: none
+}
+</style>
+</head>
+<body>
+	<h1>This is The Activity Page</h1>
+	<div>
+		<form>
+			<div class="form-group">
+				<label for="title">title</label> <input type="text"
+					class="form-control" id="titleId" name="title" placeholder="标题">
+			</div>
+			<div class="form-group">
+				<label for="categoryId">category</label> <input type="text"
+					class="form-control" id="categoryId" name="category"
+					placeholder="种类">
+			</div>
+			<div class="form-group">
+				<label for="startTimeId">startTime</label> <input type="text"
+					class="form-control" id="startTimeId" name="startTime"
+					placeholder="开始时间 :yyyy/MM/dd HH:mm">
+			</div>
+			<div class="form-group">
+				<label for="endTimeId">endTime</label> <input type="text"
+					class="form-control" id="endTimeId" name="endTime"
+					placeholder="结束时间 :yyyy/MM/dd HH:mm">
+			</div>
+			<button type="submit" class="btn btn-default"
+				onclick="doinsertActivity()">Submit</button>
+		</form>
+		<br /> <br />
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>id</th>
+					<th>title</th>
+					<th>category</th>
+					<th>startTime</th>
+					<th>endTime</th>
+					<th>operation</th>
+				</tr>
+			</thead>
+
+			<tbody id="tbodyId">
+				<tr>
+					<td colspan="6">数据正在加载...</td>
+				</tr>
+			</tbody>
+
+		</table>
+	</div>
+
+	<script type="text/javascript">
+		//封装ajax GET请求方式
+		function doAjaxGet(url, params, callback) {
+			//1.创建XmlHttpRequest对象
+			var xhr = new XMLHttpRequest();
+			//2.设置状态监听，监听XmlHttpRequest对象与服务端通讯的过程(例如连接是否建立，请求是否在处理，响应是否已产生)
+			xhr.onreadystatechange = function() {//callback(回调函数)
+				//基于xhr对象获取的通讯状态，对响应数据进行处理
+				if (xhr.readyState == 4 && xhr.status == 200) {//500表示服务端出错了
+					//服务端响应的结果会传递给XHR对象，我们可以借助responseText获取响应结果
+					callback(xhr.responseText);//jsonStr
+				}
+
+			};
+
+			//3.创建与服务端的连接
+			xhr.open("GET", url + "?" + params, true);//true表示异步
+			//4.发送请求
+			xhr.send(null);//GET请求send方法不写内容
+		} 
+
+		//封装ajax post请求方式
+		function doAjaxPost(url, params, callback) {
+			//1.创建XmlHttpRequest对象
+			var xhr = new XMLHttpRequest();
+			//2.设置状态监听，监听XmlHttpRequest对象与服务端通讯的过程(例如连接是否建立，请求是否在处理，响应是否已产生)
+			xhr.onreadystatechange = function() {//callback(回调函数)
+				//基于xhr对象获取的通讯状态，对响应数据进行处理
+				if (xhr.readyState == 4 && xhr.status == 200) {//500表示服务端出错了
+					//服务端响应的结果会传递给XHR对象，我们可以借助responseText获取响应结果
+					callback(xhr.responseText);//jsonStr
+				}
+
+			};
+
+			//3.创建与服务端的连接
+			xhr.open("POST", url, true);//true表示异步
+			xhr.setRequestHeader("Content-Type",
+					"application/x-www-form-urlencoded");
+			//4.发送请求
+			xhr.send(params); //post请求将参数写到send方法
+		}
+
+		//5.对响应结果进行处理(在回调函数中处理)。
+		//查询所有的活动信息
+		function doGetActivitys() {
+			//debugger//断点 
+			var url = "doFandAcivity";
+			var params = "";
+
+			//发起请求（post）
+			doAjaxPost(url, params, function(result) {//jsonStr
+
+				//调用doHandQueryResult方法(遍历数据，添加到tr中，再将tr添加到table中)
+				doHandQueryResult(result);
+
+			});
+		}
+
+		function doHandQueryResult(result) {
+			//将json格式的字符串，转换为json格式的javascript对象
+			var jsonObj = JSON.parse(result);
+			var trs = "";//用于储存tr
+			//将jsonObj数组中的数据遍历，并添加到td中
+			for (var i = 0; i < jsonObj.length; i++) {
+				trs += "<tr>" + "<td>" + jsonObj[i].id + "</td>" + "<td>"
+						+ jsonObj[i].title + "</td>" + "<td>"
+						+ jsonObj[i].category + "</td>" + "<td>"
+						+ jsonObj[i].startTime + "</td>" + "<td>"
+						+ jsonObj[i].endTime + "</td>" +
+
+						"<td><a onclick=doDeleteById(" + jsonObj[i].id
+						+ ")>delete</a></td>" +
+
+						"</tr>"
+			}
+			//2.2将所有的tr添加到tbody中
+			var tBody = document.getElementById("tbodyId");
+			tBody.innerHTML = trs;
+		}
+
+		//执行删除逻辑
+		function doDeleteById(id) {
+			debugger
+			//基于id执行删除操作
+			var url = "doDeleteById";
+			var params = "id=" + id;
+
+			doAjaxPost(url, params, function(result) {
+				alert(result);
+				doGetActivitys();
+			});
+		}
+
+		//执行新增逻辑
+		function doinsertActivity() {
+			//从表单中获取数据
+			var title = document.getElementById("titleId");
+			var category = document.getElementById("categoryId");
+			var startTime = document.getElementById("startTimeId");
+			var endTime = document.getElementById("endTimeId");
+			
+			//请求的url
+			var url = "doinsertActivity";
+			//请求的参数
+			var params = "title=" + title.value + "&category=" + category.value
+					+ "&startTime=" + startTime.value + "&endTime="
+					+ endTime.value;
+
+			doAjaxPost(url, params, function(result) {
+				
+				
+				alert(result);
+							
+				doGetActivitys();
+			});
+		}
+		
+		//清空表单数据	
+		
+		
+		//调用查询所有活动信息的函数
+		doGetActivitys();
+	</script>
+</body>
+</html>
